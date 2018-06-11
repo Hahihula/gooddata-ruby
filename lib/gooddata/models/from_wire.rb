@@ -14,11 +14,10 @@ module GoodData
       def self.dataset_from_wire(dataset)
         {}.tap do |d|
           id = dataset['dataset']['identifier']
-
           d[:type] = :dataset
           d[:title] = dataset['dataset']['title']
           d[:id] = id
-          d[:columns] = (parse_anchor(dataset) + parse_attributes(dataset) + parse_facts(dataset) + parse_references(dataset))
+          d[:columns] = (parse_anchor(dataset) + parse_attributes(dataset) + parse_facts(dataset) + parse_references(dataset) + parse_bridges(dataset))
         end
       end
 
@@ -31,7 +30,6 @@ module GoodData
         model = wire_model['projectModelView']['model']['projectModel']
         datasets = model['datasets'] || []
         dims = model['dateDimensions'] || []
-
         ProjectBlueprint.new(
           include_ca: options[:include_ca],
           datasets: datasets.map { |ds| dataset_from_wire(ds) },
@@ -109,6 +107,7 @@ module GoodData
           d[:title] = date_dim['dateDimension']['title']
           d[:urn] = date_dim['dateDimension']['urn']
           d[:identifier_prefix] = date_dim['dateDimension']['identifierPrefix']
+          d[:columns] = parse_bridges(date_dim)
         end
       end
 
@@ -155,16 +154,28 @@ module GoodData
       def self.parse_references(dataset)
         references = dataset['dataset']['references'] || []
         references.map do |ref|
+          {
+            :type => ref =~ /^dataset\./ ? :reference : :date,
+            :dataset => ref
+          }
+        end
+      end
+
+      # Converts bridges from wire format into an internal blueprint representation
+      #
+      # @param dataset [Hash] Whatever comes from wire
+      # @return [Hash] Manifest for a particular bridge
+      def self.parse_bridges(dataset)
+        references = !dataset['dataset'].nil? && !dataset['dataset']['bridges'].nil? ? dataset['dataset']['bridges'] : []
+        references = !dataset['dateDimension'].nil? && !dataset['dateDimension']['bridges'].nil? ? dataset['dateDimension']['bridges'] : references
+        references.map do |ref|
           if ref =~ /^dataset\./
             {
-              :type => :reference,
+              :type => :bridge,
               :dataset => ref
             }
           else
-            {
-              :type => :date,
-              :dataset => ref
-            }
+            {}
           end
         end
       end

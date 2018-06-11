@@ -98,7 +98,8 @@ module GoodData
             anchor: anchor_to_wire(project, dataset),
             attributes: attributes_to_wire(project, dataset),
             facts: DatasetBlueprint.facts(dataset).map { |f| fact_to_wire(dataset, f) },
-            references: references_to_wire(project, dataset)
+            references: references_to_wire(project, dataset),
+            bridges: bridges_to_wire(project, dataset)
           }
         }
       end
@@ -108,12 +109,13 @@ module GoodData
       # @param project [Hash] Project blueprint hash represenation
       # @param dataset [Hash] Dataset blueprint hash represenation
       # @return [Hash] Manifest for a particular reference
-      def self.date_dimension_to_wire(_project, dataset)
+      def self.date_dimension_to_wire(project, dataset)
         payload = {}.tap do |dd|
           dd[:name] = dataset[:id]
           dd[:urn] = dataset[:urn] if dataset[:urn]
           dd[:title] = GoodData::Model.title(dataset)
           dd[:identifierPrefix] = dataset[:identifier_prefix] if dataset[:identifier_prefix]
+          dd[:bridges] = bridges_to_wire(project, dataset)
         end
         { dateDimension: payload }
       end
@@ -146,6 +148,16 @@ module GoodData
       # @return [Hash] Manifest for a particular reference
       def self.references_to_wire(_project, dataset)
         DatasetBlueprint.references(dataset).map do |r|
+          r[:dataset]
+        end
+      end
+
+      # Converts bridges to wire format.
+      #
+      # @param _project [Hash] Project blueprint hash represenation
+      # @return [Hash] Manifest for a particular bridge
+      def self.bridges_to_wire(_project, bridge)
+        DatasetBlueprint.bridges(bridge).map do |r|
           r[:dataset]
         end
       end
