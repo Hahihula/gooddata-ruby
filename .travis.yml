@@ -1,13 +1,13 @@
 language: ruby
 cache: bundler
 stages:
-  - unit
+  - load
   - name: integration
     if: type = api
 jobs:
   include:
-    - stage: unit
-      script: bundle exec rake test:unit
+    - stage: load
+      script: bundle exec rake -f lcm.rake test:load:docker
       rvm:
         - 2.2
         - jruby-9.1.7

@@ -135,12 +135,13 @@ module GoodData
             user_filters.group_by { |u| u[:pid] }.flat_map.pmap do |id, new_filters|
               users = users_by_project[id]
               fail "The #{multiple_projects_column} cannot be empty" if id.blank?
+              blba_promena = new_filters.dup
               if mode == 'sync_multiple_projects_based_on_custom_id'
                 current_project = domain.clients(id, data_product).project
               elsif mode == 'sync_multiple_projects_based_on_pid'
                 current_project = client.projects(id)
               end
-              sync_user_filters(current_project, new_filters, run_params.merge(users_brick_input: users), symbolized_config)
+              sync_user_filters(current_project, blba_promena, run_params.merge(users_brick_input: users), symbolized_config)
             end
           when 'sync_domain_client_workspaces'
             domain_clients = domain.clients(:all, data_product)
