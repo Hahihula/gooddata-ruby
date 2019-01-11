@@ -1,0 +1,36 @@
+image: ruby:2.2
+
+before_script:
+  - apt-get update
+  - apt-get -y install cmake
+  - bundle install
+
+pronto_code_review:
+  # stage: before-merge
+  script:
+    - git remote add upstream https://github.com/gooddata/gooddata-ruby.git
+    - git fetch upstream master
+    - bundle exec pronto run -c upstream/master --exit-code
+
+unit_test:
+  # stage: before-merge
+  script: "bundle exec rake test:unit"
+
+sdk_integration_(vcr)_tests_-_base:
+  before_script:
+    - export VCR_RECORD_MODE=none
+  # stage: before-merge
+  script: "bundle exec rake test:sdk"
+
+sdk_integration_(vcr)_tests_-_project:
+  before_script:
+    - export VCR_RECORD_MODE=none
+  # stage: before-merge
+  script: "bundle exec rake test:project"
+
+sdk_integration_(vcr)_tests_-_project:
+  before_script:
+    - export VCR_RECORD_MODE=none
+    - export GD_ENV=development
+  # stage: before-merge
+  script: "bundle exec rspec spec/lcm/integration/lcm_end_to_end_spec.rb"
