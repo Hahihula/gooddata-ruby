@@ -79,3 +79,5 @@ For full contributor info see [contributors page](https://github.com/gooddata/go
 ## Copyright
 
 Copyright (c) 2010 - 2018 GoodData Corporation and Thomas Watson Steen. See [LICENSE](/LICENSE) for details.
+
+Test change to README
